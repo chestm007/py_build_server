@@ -1,4 +1,8 @@
+import sys
 from setuptools import setup, find_packages
+
+if sys.version > (3, ):
+    sys.exit('Sorry, Python3 is not supported at this stage.')
 
 setup(
     name='py-build-server',
@@ -15,6 +19,7 @@ setup(
     requires=[
         'click',
         'gitpython',
-        'pyyaml'
+        'pyyaml',
+        'python-daemon'
     ]
 )
