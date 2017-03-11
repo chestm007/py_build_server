@@ -20,6 +20,5 @@ setup(
         'click',
         'gitpython',
         'pyyaml',
-        'python-daemon'
     ]
 )
