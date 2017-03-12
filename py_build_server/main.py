@@ -3,6 +3,8 @@ import sys
 
 from multiprocessing import Process
 
+import click
+
 from py_build_server.lib import ExtendedRepo
 from py_build_server.config import Config
 from py_build_server.lib.logger import Logger
@@ -62,6 +64,8 @@ class PyBuildServer(Daemon):
                     return
 
 
+@click.command()
+@click.argument('command')
 def main(command):
     if command in HELP_DECLS:
         print("""
@@ -94,4 +98,4 @@ def main(command):
         server.run()
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main()
