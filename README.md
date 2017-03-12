@@ -1,9 +1,7 @@
-An automated build server written for Python2.7
+An automated build server written for Python2.7 (python3 support coming soon)
 
 ####About
-monitors git repository either by polling or listening for webhook\
-messages, and when new tagged versions are released, builds and uploads\
-to your chosen repository via twine
+monitors git repository either by polling or listening for webhook messages, and when new tagged versions are released, builds and uploads to your chosen repository via twine
 
 ####Installation
 `sudo pip2 install py-build-server`
