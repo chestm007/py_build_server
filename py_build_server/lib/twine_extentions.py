@@ -6,22 +6,18 @@ class Twine(object):
         self.repo = repo
 
     def upload(self, call):
-        subprocess.check_output(
-            'cd {}; python2 setup.py sdist'.format(call.repo_dir), shell=True)
-        result = UploadCallResult(subprocess.check_output(str(call), shell=True))
-        subprocess.check_output(
-            'rm -rf {}/dist'.format(call.repo_dir), shell=True)
-        if result.exit_code == 0:
-            return True
-        return False
-
-
-class UploadCallResult(object):
-    def __init__(self, result):
-        self.exit_code = 0
-        for line in result.splitlines():
-            if line.startswith('HTTPError'):
-                self.exit_code = 1
+        success = True
+        try:
+            subprocess.check_output(
+                'cd {}; python2 setup.py sdist'.format(call.repo_dir), shell=True)
+            subprocess.check_output(str(call), shell=True)
+        except subprocess.CalledProcessError:
+            success = False
+            self.repo.logger.error('error uploading file to pipy')
+        finally:
+            subprocess.check_output(
+                'rm -rf {}/dist'.format(call.repo_dir), shell=True)
+        return success
 
 
 class UploadCall(object):
