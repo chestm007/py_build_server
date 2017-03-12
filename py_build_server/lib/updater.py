@@ -35,6 +35,7 @@ class GithubWebhookUpdater(Updater):
     class WebhookResponse(object):
         def __init__(self, in_dict):
             self.ref = in_dict.get('ref')
+            self.tag = self.ref.split('/')[-1]
             self.is_tagged_push = 'tags' in self.ref
             self.repository = in_dict.get('repository').get('name')
 
@@ -46,7 +47,9 @@ class GithubWebhookUpdater(Updater):
         def index(self):
             request = GithubWebhookUpdater.WebhookResponse(cherrypy.request.json)
             if request.is_tagged_push:
-                self.updater.repositories.get(request.repository).queue.put('new_tag')
+                repo = self.updater.repositories.get(request.repository)
+                repo.latest_tag = request.tag
+                repo.queue.put('new_tag')
 
     def __init__(self):
         super(GithubWebhookUpdater, self).__init__()

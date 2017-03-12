@@ -6,7 +6,7 @@ if sys.version > (3, ):
 
 setup(
     name='py-build-server',
-    version='0.2.3.1',
+    version='0.2.4',
     packages=find_packages(),
     license='GPL3',
     author='chestm007',
