@@ -50,9 +50,9 @@ class ExtendedRepo(Repo):
                 self.logger.info('uploaded {}:{} to pypi'.format(self.name, self.latest_tag))
                 LatestTagFileParser.set_tag_in_file(self, self.latest_tag)
             else:
-                self.latest_tag = old_tag
                 self.logger.info('failed uploading {}:{} to pypi, rolling back latest tag'
                                  .format(self.name, self.latest_tag))
+                self.latest_tag = old_tag
 
         except KeyboardInterrupt:
             self.logger.debug('exiting process for {}'.format(self.name))
