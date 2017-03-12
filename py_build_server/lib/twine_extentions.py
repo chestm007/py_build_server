@@ -1,6 +1,4 @@
-import os
-
-from py_build_server.lib.file_operations import LatestTagFileParser
+import subprocess
 
 
 class Twine(object):
@@ -8,9 +6,11 @@ class Twine(object):
         self.repo = repo
 
     def upload(self, call):
-        os.popen('cd {}; python2 setup.py sdist'.format(call.repo_dir)).read()
-        result = UploadCallResult(os.popen(str(call)))
-        os.popen('rm -rf {}/dist'.format(call.repo_dir)).read()
+        subprocess.check_output(
+            'cd {}; python2 setup.py sdist'.format(call.repo_dir), shell=True)
+        result = UploadCallResult(subprocess.check_output(str(call), shell=True))
+        subprocess.check_output(
+            'rm -rf {}/dist'.format(call.repo_dir), shell=True)
         if result.exit_code == 0:
             return True
         return False
@@ -19,7 +19,7 @@ class Twine(object):
 class UploadCallResult(object):
     def __init__(self, result):
         self.exit_code = 0
-        for line in result.read().splitlines():
+        for line in result.splitlines():
             if line.startswith('HTTPError'):
                 self.exit_code = 1
 
