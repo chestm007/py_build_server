@@ -6,11 +6,11 @@ if sys.version > (3, ):
 
 setup(
     name='py-build-server',
-    version='0.2.4',
+    version='0.2.5',
     packages=find_packages(),
     license='GPL3',
     author='chestm007',
-    url='github.com/chestm007/py_build_server',
+    url='https://github.com/chestm007/py_build_server',
     author_email='chestm007@hotmail.com',
     description='My build server i run on my home server to check for git repo tags, and push to pypi',
     entry_points="""

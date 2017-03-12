@@ -1,3 +1,4 @@
+import json
 import sys
 
 from multiprocessing import Process
@@ -41,7 +42,9 @@ class PyBuildServer(Daemon):
     def wait_for_event(self, repo):
         while True:
             try:
-                action = repo.queue.get()
+                payload = json.loads(repo.queue.get())
+                action = payload.get('event')
+
             except KeyboardInterrupt:
                 self.logger.debug('exited while waiting for event from queue')
                 return
@@ -50,7 +53,7 @@ class PyBuildServer(Daemon):
                 break
             if action == 'new_tag':
                 try:
-                    repo.upload()
+                    repo.upload(payload.get('latest'))
                 except KeyboardInterrupt:
                     self.logger.debug('exited while running repo.update() task')
                     return

@@ -34,7 +34,8 @@ class ExtendedRepo(Repo):
     def status(self):
         return Status(self.git.status())
 
-    def upload(self):
+    def upload(self, latest_tag):
+        self.latest_tag = latest_tag
         try:
             if LatestTagFileParser.is_tag_in_file(self, self.latest_tag):
                 return

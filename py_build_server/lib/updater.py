@@ -1,3 +1,4 @@
+import json
 import time
 import cherrypy
 
@@ -49,7 +50,7 @@ class GithubWebhookUpdater(Updater):
             if request.is_tagged_push:
                 repo = self.updater.repositories.get(request.repository)
                 repo.latest_tag = request.tag
-                repo.queue.put('new_tag')
+                repo.queue.put(json.dumps(dict(event='new_tag', latest=request.tag)))
 
     def __init__(self):
         super(GithubWebhookUpdater, self).__init__()
@@ -67,7 +68,6 @@ class PollingUpdater(Updater):
     def __init__(self):
         super(PollingUpdater, self).__init__()
         self.processes = []
-
 
     def start(self):
         for repo in self.repositories.values():
@@ -89,9 +89,9 @@ class PollingUpdater(Updater):
                                     .format(repo.active_branch, repo.config.branch))
 
             status = repo.get_status()
-            repo.latest_tag = [tag.name for tag in reversed(sorted(repo.tags)) if tag.name != 'origin'][0]
+            latest_tag = [tag.name for tag in reversed(sorted(repo.tags)) if tag.name != 'origin'][0]
             if status.behind:
-                repo.queue.put('new_tag')
+                repo.queue.put(json.dumps(dict(event='new_tag', latest=latest_tag)))
             self.logger.debug('waiting {} minutes'.format(repo.config.fetch_frequency))
             try:
                 time.sleep(repo.config.fetch_frequency * 60)
