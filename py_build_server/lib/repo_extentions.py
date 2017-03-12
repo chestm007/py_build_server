@@ -35,6 +35,7 @@ class ExtendedRepo(Repo):
         return Status(self.git.status())
 
     def upload(self, latest_tag):
+        old_tag = self.latest_tag
         self.latest_tag = latest_tag
         try:
             if LatestTagFileParser.is_tag_in_file(self, self.latest_tag):
@@ -46,7 +47,13 @@ class ExtendedRepo(Repo):
 
             self.get_remote().pull()
             if Twine(self).upload(UploadCall(self.working_dir, self.config.twine_conf)):
+                self.logger.info('uploaded {}:{} to pypi'.format(self.name, self.latest_tag))
                 LatestTagFileParser.set_tag_in_file(self, self.latest_tag)
+            else:
+                self.latest_tag = old_tag
+                self.logger.info('failed uploading {}:{} to pypi, rolling back latest tag'
+                                 .format(self.name, self.latest_tag))
+
         except KeyboardInterrupt:
             self.logger.debug('exiting process for {}'.format(self.name))
 
