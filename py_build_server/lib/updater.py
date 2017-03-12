@@ -92,7 +92,9 @@ class PollingUpdater(Updater):
                                     .format(repo.active_branch, repo.config.branch))
 
             status = repo.get_status()
-            latest_tag = [tag.name for tag in reversed(sorted(repo.tags)) if tag.name != 'origin'][0]
+            latest_tag = [tag for tag in reversed(sorted(
+                str(tag) for tag in repo.tags
+            )) if tag != 'origin'][0]
             if status.behind:
                 repo.queue.put(json.dumps(dict(event='new_tag', latest=latest_tag)))
             self.logger.debug('waiting {} minutes'.format(repo.config.fetch_frequency))

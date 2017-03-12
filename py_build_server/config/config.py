@@ -1,3 +1,4 @@
+import sys
 import yaml
 import logging
 
@@ -10,7 +11,7 @@ class Config(object):
         if isinstance(config, dict):
             self.logging = Logging(config.get('logging', {}))
             self.repos = {name: Repo(name, conf) for name, conf in
-                          config.get('repositories', {}).iteritems()}
+                          config.get('repositories', {}).items()}
             self.update_method = config.get('repository_update_method', 'polling')
 
         self._sanity_check()
@@ -22,14 +23,18 @@ class Config(object):
     def _sanity_check(self):
         if len(self.repos) < 1:
             raise Exception(msg='no repos detected in yaml')
-        for name, repo in self.repos.iteritems():
+        for name, repo in self.repos.items():
             if repo.dir is None:
                 raise Exception(msg='repo {} has no dir set'.format(name))
 
 
 class Logging(object):
     def __init__(self, conf):
-        self.level = logging._levelNames.get(conf.get('level', 'info').upper())
+        try:
+            level_map = logging._nameToLevel
+        except:
+            level_map = logging._levelNames
+        self.level = level_map.get(conf.get('level', 'info').upper())
         self.implement_journald = conf.get('implement_journald', False)
 
 
