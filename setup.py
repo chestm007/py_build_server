@@ -19,6 +19,6 @@ setup(
     requires=[
         'click',
         'gitpython',
-        'pyyaml',
+        'pyyaml'
     ]
 )

@@ -1,13 +1,19 @@
 import yaml
+import logging
 
 
 class Config(object):
     def __init__(self):
         with open('/etc/py-build-server/config.yaml', 'r') as config_file:
             config = yaml.load(config_file)
+
         if isinstance(config, dict):
-            self.repos = {name: Repo(name, conf) for name, conf in config.iteritems()}
+            self.logging = Logging(config.get('logging', {}))
+            self.repos = {name: Repo(name, conf) for name, conf in
+                          config.get('repositories', {}).iteritems()}
+
         self._sanity_check()
+        logging.basicConfig(level=self.logging.level)
 
     def get(self, name):
         return self.repos.get(name)
@@ -19,6 +25,11 @@ class Config(object):
             if repo.dir is None:
                 raise Exception(msg='repo {} has no dir set'.format(name))
 
+
+class Logging(object):
+    def __init__(self, conf):
+        self.level = logging._levelNames.get(conf.get('level', 'info').upper())
+        self.implement_journald = conf.get('implement_journald', False)
 
 class Repo(object):
     def __init__(self, name, conf):

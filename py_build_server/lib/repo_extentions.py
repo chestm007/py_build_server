@@ -1,5 +1,7 @@
 from git import Repo
 
+from py_build_server.lib.logger import Logger
+
 
 class ExtendedRepo(Repo):
     def __init__(self, config=None, name=None, *args, **kwargs):
@@ -8,6 +10,7 @@ class ExtendedRepo(Repo):
         super(ExtendedRepo, self).__init__(path=config.dir, *args, **kwargs)
         self.name = name
         self.config = config
+        self.logger = Logger(self.name)
         assert not self.bare
 
     @staticmethod

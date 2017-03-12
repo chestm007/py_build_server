@@ -1,6 +1,3 @@
-import click
-
-
 class LatestTagFileParser(object):
     @staticmethod
     def is_tag_in_file(repo, tag):
@@ -9,18 +6,18 @@ class LatestTagFileParser(object):
                 data = file.read()
         except IOError:
             return False
-        if data.startswith(repo.name):
-            data_tag = data.split(':')[1]
-            if tag == data_tag:
-                print("tags match")
-                return True
+        for line in data.splitlines():
+            if line.startswith(repo.name):
+                data_tag = data.split(':')[1]
+                if '{}\n'.format(tag) == data_tag:
+                    repo.logger.info("tags match, nothing to be done here")
+                    return True
         return False
 
     @staticmethod
     def set_tag_in_file(repo, tag):
         try:
             with open('/etc/py-build-server/latest-tag-{}'.format(repo.name), 'w') as file:
-                click.echo('writing to tag file')
-                file.write('{}:{}'.format(repo.name, tag))
+                file.write('{}:{}\n'.format(repo.name, tag))
         except IOError:
-            click.echo('error writing to file for repo {}'.format(repo.name))
+            repo.logger.error('error writing to file for repo {}'.format(repo.name))

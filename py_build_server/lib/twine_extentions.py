@@ -14,7 +14,6 @@ class Twine(object):
         os.popen('cd {}; python2 setup.py sdist'.format(call.repo_dir)).read()
         result = UploadCallResult(os.popen(str(call)))
         os.popen('rm -rf {}/dist'.format(call.repo_dir)).read()
-        print(result)
         if result.exit_code == 0:
             self.latest_tag = tag
             LatestTagFileParser.set_tag_in_file(self.repo, tag)
@@ -22,10 +21,10 @@ class Twine(object):
 
 class UploadCallResult(object):
     def __init__(self, result):
+        self.exit_code = 0
         for line in result.read().splitlines():
             if line.startswith('HTTPError'):
                 self.exit_code = 1
-        self.exit_code = 0
 
 
 class UploadCall(object):
@@ -64,9 +63,7 @@ class UploadCall(object):
             call_params.append('--config-file {}'.format(self.pypirc_file))
         if self.skip_existing:
             call_params.append('--skip-existing')
-        ret = 'twine upload {} {}'.format(self.dist, ' '.join(call_params))
-        print(ret)
-        return ret
+        return 'twine upload {} {}'.format(self.dist, ' '.join(call_params))
 
     def load_yaml_config(self, config):
         for key in config.keys():

@@ -182,11 +182,11 @@ class Daemon(object):
         try:
             i = 0
             while 1:
-                os.kill(pid, signal.SIGTERM)
+                os.killpg(os.getpgid(pid), signal.SIGTERM)
                 time.sleep(0.1)
                 i += 1
                 if i % 10 == 0:
-                    os.kill(pid, signal.SIGHUP)
+                    os.killpg(os.getpgid(pid), signal.SIGHUP)
         except OSError as err:
             if err.errno == errno.ESRCH:
                 if os.path.exists(self.pidfile):
