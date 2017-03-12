@@ -1,10 +1,14 @@
 An automated build server written for Python2.7
 
+####About
 monitors git repository either by polling or listening for webhook\
 messages, and when new tagged versions are released, builds and uploads\
 to your chosen repository via twine
 
-you will need to create a `config.yaml` file in `/etc/py-build-server/` something like:
+####Installation
+`sudo pip2 install py-build-server`
+
+you will need to modify `config.yaml` file in `/etc/py-build-server/` to match your deployment:
 
 ```yaml
 # this file belongs in /etc/py-build-server/config/yaml
@@ -45,3 +49,6 @@ you will need to create a `config.yaml` file in `/etc/py-build-server/` somethin
 #             pypirc_file:           # (O) the .pypirc file to use
 #             skip_existing: false   # (O) continue uploading if one already exists
 ```
+
+####Notes
+This program is written as a daemon process.

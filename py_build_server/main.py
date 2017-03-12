@@ -9,6 +9,9 @@ from py_build_server.lib.logger import Logger
 from py_build_server.lib.python_daemon import Daemon
 from py_build_server.lib import updater
 
+HELP_DECLS=('help', '--help', '-h', 'h')
+
+
 class PyBuildServer(Daemon):
     def __init__(self, *args, **kwargs):
         super(PyBuildServer, self).__init__(*args, **kwargs)
@@ -76,4 +79,17 @@ def main(command):
         server.run()
 
 if __name__ == '__main__':
+    if sys.argv[1] in HELP_DECLS:
+        print("""
+        Python daemon to monitor git repositories, either by polling or listening for
+        webhooks from Github.
+
+        Usage:    py-build-server [COMMAND]
+
+        Commands:
+            start       : start the daemon process and fork to background
+            stop        : stop the currently running daemon process
+            restart     : restarts the daemon
+            foreground  : runs process in the foreground
+        """)
     main(sys.argv[1])

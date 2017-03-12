@@ -47,8 +47,6 @@ class ExtendedRepo(Repo):
             self.get_remote().pull()
             if Twine(self).upload(UploadCall(self.working_dir, self.config.twine_conf)):
                 LatestTagFileParser.set_tag_in_file(self, self.latest_tag)
-            self.logger.debug('waiting {} minutes before checking again'.format(self.config.fetch_frequency))
-            time.sleep(self.config.fetch_frequency * 60)
         except KeyboardInterrupt:
             self.logger.debug('exiting process for {}'.format(self.name))
 
