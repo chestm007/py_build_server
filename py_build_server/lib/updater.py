@@ -1,8 +1,7 @@
-from multiprocessing import Process
-
 import time
-
 import cherrypy
+
+from multiprocessing import Process
 
 from py_build_server.lib.logger import Logger
 
@@ -33,24 +32,32 @@ class Updater(object):
 
 
 class GithubWebhookUpdater(Updater):
+    class WebhookResponse(object):
+        def __init__(self, in_dict):
+            self.ref = in_dict.get('ref')
+            self.is_tagged_push = 'tags' in self.ref
+            self.repository = in_dict.get('repository').get('name')
+
     class Root(object):
+        def __init__(self, updater):
+            self.updater = updater
         @cherrypy.expose
         @cherrypy.tools.json_in()
         def index(self):
-            request = cherrypy.request.json
+            request = GithubWebhookUpdater.WebhookResponse(cherrypy.request.json)
+            if request.is_tagged_push:
+                self.updater.repositories.get(request.repository).queue.put('new_tag')
 
     def __init__(self):
         super(GithubWebhookUpdater, self).__init__()
         self.subdomain = None
 
     def start(self):
-        cherrypy.quickstart(self.Root(), self.subdomain)
+        cherrypy.quickstart(self.Root(self), self.subdomain)
 
     def load_config(self, config):
         cherrypy.server.socket_host = config.update_method.get('listen_address', '0.0.0.0')
         self.subdomain = config.update_method.get('subdomain', '/')
-
-    def sanity_check(self):
 
 
 class PollingUpdater(Updater):
