@@ -82,9 +82,8 @@ def main(command):
         """)
         return
 
-    server = PyBuildServer('/etc/py-build-server/pid',
-                           stdout='/var/log/py-build-server/stdout.log',
-                           stderr='/var/log/py-build-server/stderr.log')
+    server = PyBuildServer('/var/run/py-build-server.pid',
+                           verbose=0)
     if command == 'start':
         server.start()
 

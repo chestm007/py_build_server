@@ -60,6 +60,9 @@ class GithubWebhookUpdater(Updater):
         cherrypy.quickstart(self.Root(self), self.subdomain)
 
     def load_config(self, config):
+        cherrypy.config.update({'log.screen': False,
+                                'log.access_file': '',
+                                'log.error_file': ''})
         cherrypy.server.socket_host = config.update_method.get('listen_address', '0.0.0.0')
         self.subdomain = config.update_method.get('subdomain', '/')
 

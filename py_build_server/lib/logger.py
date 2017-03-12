@@ -1,4 +1,3 @@
-from datetime import datetime
 import logging
 import logging.handlers
 
@@ -22,7 +21,3 @@ class Logger(object):
 
     def error(self, msg):
         self._logger.error('{}:{}'.format(self.identifier, msg))
-
-    def log(self, msg, severity=''):
-        print('[{}] py-build-server [{}] {}: {}'.format(
-              datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.identifier, severity, msg))
