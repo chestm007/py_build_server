@@ -5,7 +5,7 @@ if sys.version > (3, ):
     sys.exit('Sorry, Python3 is not supported at this stage.')
 setup(
     name='py-build-server',
-    version='0.2.6.4',
+    version='0.2.6.5',
     packages=find_packages(),
     license='GPL3',
     author='chestm007',
