@@ -48,7 +48,7 @@ if not os.path.isfile('/etc/py-build-server/config.yaml'):
         wrote_config = True
 setup(
     name='py-build-server',
-    version='0.2.5',
+    version='0.2.6',
     packages=find_packages(),
     license='GPL3',
     author='chestm007',
