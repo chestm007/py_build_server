@@ -11,6 +11,7 @@ class Config(object):
             self.logging = Logging(config.get('logging', {}))
             self.repos = {name: Repo(name, conf) for name, conf in
                           config.get('repositories', {}).iteritems()}
+            self.update_method = config.get('repository_update_method', 'polling')
 
         self._sanity_check()
         logging.basicConfig(level=self.logging.level)
@@ -31,11 +32,12 @@ class Logging(object):
         self.level = logging._levelNames.get(conf.get('level', 'info').upper())
         self.implement_journald = conf.get('implement_journald', False)
 
+
 class Repo(object):
     def __init__(self, name, conf):
         self.name = name
         self.dir = conf.get('dir')
-        self.fetch_frequency = conf.get('fetch_frequency', 10)
+        self.fetch_frequency = conf.get('interval', 10)
         self.branch = conf.get('branch')
         self.remote = conf.get('remote', 'origin')
         self.twine_conf = conf.get('twine_conf')

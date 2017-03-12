@@ -12,16 +12,16 @@ class Logger(object):
         self.identifier = identifier
 
     def debug(self, msg):
-        self._logger.debug(msg)
+        self._logger.debug('{}:{}'.format(self.identifier, msg))
 
     def info(self, msg):
-        self._logger.info(msg)
+        self._logger.info('{}:{}'.format(self.identifier, msg))
 
     def warn(self, msg):
-        self._logger.warn(msg)
+        self._logger.warn('{}:{}'.format(self.identifier, msg))
 
     def error(self, msg):
-        self._logger.error(msg)
+        self._logger.error('{}:{}'.format(self.identifier, msg))
 
     def log(self, msg, severity=''):
         print('[{}] py-build-server [{}] {}: {}'.format(

@@ -5,18 +5,15 @@ from py_build_server.lib.file_operations import LatestTagFileParser
 
 class Twine(object):
     def __init__(self, repo):
-        self.latest_tag = None
         self.repo = repo
 
-    def upload(self, call, tag):
-        if LatestTagFileParser.is_tag_in_file(self.repo, tag):
-            return
+    def upload(self, call):
         os.popen('cd {}; python2 setup.py sdist'.format(call.repo_dir)).read()
         result = UploadCallResult(os.popen(str(call)))
         os.popen('rm -rf {}/dist'.format(call.repo_dir)).read()
         if result.exit_code == 0:
-            self.latest_tag = tag
-            LatestTagFileParser.set_tag_in_file(self.repo, tag)
+            return True
+        return False
 
 
 class UploadCallResult(object):

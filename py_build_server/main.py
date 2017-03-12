@@ -1,65 +1,59 @@
 import sys
-import time
 
 from multiprocessing import Process
 
 from py_build_server.lib import ExtendedRepo
 from py_build_server.config import Config
 from py_build_server.lib.logger import Logger
-from py_build_server.lib.twine_extentions import UploadCall, Twine
 from py_build_server.lib.python_daemon import Daemon
-
+from py_build_server.lib import updater
 
 class PyBuildServer(Daemon):
     def __init__(self, *args, **kwargs):
         super(PyBuildServer, self).__init__(*args, **kwargs)
         self.config = Config()
         self.logger = Logger('py-build-server')
+        self.updater = updater.get_updater(self.config)
 
     def run(self, *args, **kwargs):
-        processes = []
+        repository_processes = {}
         self.logger.info('Initializing processes...')
         for repo in ExtendedRepo.build_repos_from_config(self.config):
             self.logger.debug('creating process for {}...'.format(repo.name))
-            p = Process(target=self.check_repo, args=(repo, ))
+            self.updater.register_new_repo(repo)
+            p = Process(target=self.wait_for_event, args=(repo, ))
             self.logger.debug('starting process for {}...'.format(repo.name))
             p.start()
-            processes.append(p)
+
+            repository_processes[repo.name] = p
             self.logger.debug('started process for {}'.format(repo.name))
 
+        self.updater.load_config(self.config)
+        self.updater.start()
         try:
-            for p in processes:
+            for p in repository_processes.values():
                 self.logger.debug('waiting for threads to return (shouldnt happen')
                 p.join()
         except KeyboardInterrupt:
             self.logger.info('exiting')
             sys.exit(0)
 
-    @staticmethod
-    def check_repo(repo):
+    def wait_for_event(self, repo):
         while True:
             try:
-                repo.logger.info('Checking status of {}'.format(repo.name))
-                if repo.config.branch is not None:
-                    if repo.config.branch != str(repo.active_branch):
-                        raise Exception(msg='repository is not on the correct branch({} != {})'
-                                            .format(repo.active_branch, repo.config.branch))
-
-                status = repo.get_status()
-                latest_tag = [tag.name for tag in reversed(sorted(repo.tags)) if tag.name != 'origin'][0]
-                if status.behind:
-                    repo.logger.info('pulling latest changes for {repo} from {remote}/{branch}'
-                                     .format(repo=repo.name,
-                                             remote=repo.get_remote().name,
-                                             branch=repo.active_branch.name))
-
-                    repo.get_remote().pull()
-                Twine(repo).upload(UploadCall(repo.working_dir, repo.config.twine_conf), latest_tag)
-                repo.logger.debug('waiting {} minutes before checking again'.format(repo.config.fetch_frequency))
-                time.sleep(repo.config.fetch_frequency * 60)
+                action = repo.queue.get()
             except KeyboardInterrupt:
-                repo.logger.debug('exiting process for {}'.format(repo.name))
+                self.logger.debug('exited while waiting for event from queue')
+                return
+            self.logger.debug('recieved {} from queue'.format(action))
+            if action == 'stop':
                 break
+            if action == 'new_tag':
+                try:
+                    repo.upload()
+                except KeyboardInterrupt:
+                    self.logger.debug('exited while running repo.update() task')
+                    return
 
 
 def main(command):
