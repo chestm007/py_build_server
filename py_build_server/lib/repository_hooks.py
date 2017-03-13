@@ -6,6 +6,10 @@ class RepositoryListeners(object):
         if obj not in self.listeners:
             self.listeners.append(obj)
 
+    def add_listeners(self, obj_list):
+        for obj in obj_list:
+            self.add_listener(obj)
+
     def register_repository(self, repo):
         for listener in self.listeners:
             if repo not in listener.repositories.values():

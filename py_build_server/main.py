@@ -22,8 +22,8 @@ class PyBuildServer(Daemon):
         self.config = Config()
         self.logger = Logger('py-build-server')
         self.repo_listeners = RepositoryListeners()
-        self.updater = updater.get_updater(self.config)
-        self.repo_listeners.add_listener(self.updater)
+        self.updaters = updater.get_updaters(self.config)
+        self.repo_listeners.add_listeners(self.updaters)
         self.api = Api()
         self.repo_listeners.add_listener(self.api)
 

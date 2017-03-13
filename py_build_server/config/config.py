@@ -30,15 +30,20 @@ class Config(object):
 
 
 class UpdateMethod(object):
-    def __init__(self, conf):
-        if 'github_webhook' in conf:
-            conf = conf.get('github_webhook')
-            self.method = 'github_webhook'
+    class Method(object):
+        def __init__(self, conf):
             self.subdomain = conf.get('subdomain')
-            self.port = conf.get('port')
             self.listen_address = conf.get('listen_address')
-        else:
-            self.method = 'polling'
+            self.port = conf.get('port')
+
+    def __init__(self, conf):
+        self.methods = {}
+        for method in ('github_webhook', 'bitbucket_webhook'):
+            if method in conf:
+                c = conf.get(method)
+                self.methods[method] = self.Method(c)
+        if 'polling' in conf:
+            self.methods['polling'] = 'polling'
 
 class Logging(object):
     def __init__(self, conf):
@@ -55,6 +60,7 @@ class Repo(object):
         self.name = name
         self.dir = conf.get('dir')
         self.fetch_frequency = conf.get('interval', 10)
+        self.update_method = conf.get('update_method')
         self.branch = conf.get('branch')
         self.remote = conf.get('remote', 'origin')
         self.twine_conf = conf.get('twine_conf')
