@@ -111,7 +111,7 @@ class GithubWebhookUpdater(WebhookUpdater):
         def __init__(self, in_dict):
             self.ref = in_dict.get('ref')
             self.created = in_dict.get('created')
-            super(GithubWebhookUpdater.GithubWebhookRequest, self).__init__(self.ref)
+            super(GithubWebhookUpdater.GithubWebhookRequest, self).__init__(in_dict)
 
     class Root(WebhookUpdater.Root):
         @cherrypy.expose(alias='/github')
