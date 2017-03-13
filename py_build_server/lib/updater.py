@@ -83,9 +83,9 @@ class BitbucketWebhookUpdater(WebhookUpdater):
 
     class BitbucketWebhookRequest(WebhookUpdater.WebhookRequest):
         def __init__(self, in_dict):
-            ref_changes = in_dict.get('refChanges', {})
-            self.ref = ref_changes.get('refId')
-            self.created = ref_changes.get('type') == 'UPDATE'
+            ref_changes = in_dict.get('push', {}).get('changes', [])[0]
+            self.ref = '{}s/{}'.format(ref_changes.get('new', {}).get('type'), ref_changes.get('new', {}).get('name'))
+            self.created = ref_changes.get('created')
             super(BitbucketWebhookUpdater.BitbucketWebhookRequest, self).__init__(in_dict)
 
     class Root(WebhookUpdater.Root):
