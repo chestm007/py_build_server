@@ -15,6 +15,19 @@ class Api(RepositoryListener):
             self.repository = in_dict.get('repository')
             self.latest_tag = in_dict.get('latest_tag')
 
+    class GenericRequest(object):
+        def __init__(self, in_dict):
+            self.repository = None
+            self.event = None
+            if self._sanity_check(in_dict):
+                self.__dict__.update(in_dict)
+
+        def _sanity_check(self, in_dict):
+            for key in in_dict:
+                if key not in self.__dict__:
+                    return False
+            return True
+
     class Root(object):
         def __init__(self, api):
             self.api = api  # type: Api
@@ -27,11 +40,20 @@ class Api(RepositoryListener):
                 if repo is None:
                     self.api.logger.info('specified repository ({}) is not registered'
                                          .format(request.repository))
+                    return dict(status='failure', reason='repository not found')
                 else:
                     repo.queue.put(json.dumps(dict(event=event, latest=request.latest_tag)))
+                    return dict(status='success')
+            if event == 'list_repositories':
+                return dict(repositories=[repo for repo in self.api.repositories])
+            if event == 'list_repository':
+                request = Api.GenericRequest(in_dict)
+                repo = self.api.repositories.get(request.repository)
+                return dict(repository=repo.to_dict())
 
         @cherrypy.expose(alias='/api')
         @cherrypy.tools.json_in()
+        @cherrypy.tools.json_out()
         def index(self):
             if self.api.strict_port_checking:  # TODO: this seems rather a hacky method of
                                                # TODO: isolating the API
@@ -41,7 +63,7 @@ class Api(RepositoryListener):
                     self.api.logger.debug('requested port: {}. configured port: {}'
                                           .format(port, self.api.cherrypy_server.bind_addr[1]))
                     return
-            self.decode_request(cherrypy.request.json)
+            return self.decode_request(cherrypy.request.json)
 
     def __init__(self):
         super(Api, self).__init__()

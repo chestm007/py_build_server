@@ -48,6 +48,10 @@ class ExtendedRepo(Repo):
         """
         return [ExtendedRepo(name=name, config=repo_config) for name, repo_config in config.repos.items()]
 
+    def to_dict(self):
+        return dict(config=self.config.__dict__, name=self.name, active_branch=str(self.active_branch),
+                    latest_tag=str(self.latest_tag))
+
     def get_status(self):
         self.get_remote().fetch()
         return self.status()

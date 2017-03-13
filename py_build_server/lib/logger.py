@@ -21,3 +21,7 @@ class Logger(object):
 
     def error(self, msg):
         self._logger.error('{}:{}'.format(self.identifier, msg))
+
+    def __str__(self):
+        return "{} logger object".format(self.identifier)
+
