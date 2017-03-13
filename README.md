@@ -14,13 +14,23 @@ you will need to modify `config.yaml` file in `/etc/py-build-server/` to match y
 # Demo entry using all possible config options: O denotes optionals
 ####
 #
+### this section defines how to start the API server
+### api and repository_update_method cannot bind to the same address, port and subdomain
+#
+# api:
+#     listen_address: 127.0.0.1      # listen on this address
+#     strict_port_checking: true     # (O) setting to false may let the api accept requests intended
+#                                    #     for another module
+#     port: 9832                     # port to listen on
+#     subdomain: /api                # subdomain to bind to
+#
 ### this section defines how to check for changes
 #
 # repository_update_method: polling  # (O) poll git repo
 # repository_update_method:          # (O) --alternatively--
-#     webhook:                       # (O) specify webhook to recieve notifications from github
-#         subdomain: /               # (O) listen to this subdomain (http://<your_url/)
-#         listen_address: 0.0.0.0    # (O) listen on this local address (0.0.0.0 listens to all)
+#     github_webhook:                # (O) specify webhook to recieve notifications from github
+#         subdomain: /github         # listen to this subdomain (http://<your_url/)
+#         listen_address: 192.168.1.2# listen on this address
 #
 ### this section set logging options
 #
@@ -47,6 +57,13 @@ you will need to modify `config.yaml` file in `/etc/py-build-server/` to match y
 #             pypirc_file:           # (O) the .pypirc file to use
 #             skip_existing: false   # (O) continue uploading if one already exists
 ```
-
+#### API:
+The API supports the following POST requests:
+- Trigger build and upload of the latest tag:
+  - The JSON payload should look like `{"event":"new_tag","repository":"<repo_name>"}` 
+  - eg: `curl -H "Content-Type: application/json" -X POST -d '{"event":"new_tag","repository":"py_build_server"}' http://localhost:9832/api/`
+  
 ####Notes
 This program is written as a daemon process.
+If you are going to be running it under systemd, create a unit that calls `py-build-server foreground`
+

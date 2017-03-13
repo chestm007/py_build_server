@@ -7,6 +7,7 @@ from multiprocessing import Process
 
 from py_build_server.lib.http_server_skeleton import HTTPServerSkeleton
 from py_build_server.lib.logger import Logger
+from py_build_server.lib.repository_hooks import RepositoryListener
 
 
 def get_updater(config):
@@ -16,22 +17,13 @@ def get_updater(config):
         return GithubWebhookUpdater()
 
 
-class Updater(object):
+class Updater(RepositoryListener):
     def __init__(self):
-        self.repositories = {}
+        super(Updater, self).__init__()
         self.logger = Logger('updater')
-
-    def register_new_repo(self, repo):
-        self.repositories[repo.name] = repo
-
-    def start(self):
-        raise NotImplementedError
 
     def check_repo(self, repo):
         raise NotImplementedError
-
-    def load_config(self, config):
-        pass
 
 
 class GithubWebhookUpdater(Updater):
@@ -39,6 +31,7 @@ class GithubWebhookUpdater(Updater):
         def __init__(self, in_dict):
             self.ref = in_dict.get('ref')
             self.tag = self.ref.split('/')[-1]
+            self.created = in_dict.get('created')
             self.is_tagged_push = 'tags' in self.ref
             self.repository = in_dict.get('repository').get('name')
 
@@ -53,7 +46,7 @@ class GithubWebhookUpdater(Updater):
             # that cant be decoded to JSON
             try:
                 request = GithubWebhookUpdater.WebhookResponse(cherrypy.request.json)
-                if request.is_tagged_push:
+                if request.is_tagged_push and request.created:
                     repo = self.updater.repositories.get(request.repository)
                     repo.latest_tag = request.tag
                     repo.queue.put(json.dumps(dict(event='new_tag', latest=request.tag)))

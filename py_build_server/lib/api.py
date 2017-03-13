@@ -5,9 +5,10 @@ from cherrypy import _cpwsgi_server, _cpserver
 
 from py_build_server.lib.http_server_skeleton import HTTPServerSkeleton
 from py_build_server.lib.logger import Logger
+from py_build_server.lib.repository_hooks import RepositoryListener
 
 
-class Api(object):
+class Api(RepositoryListener):
     class UpdateRequest(object):
         def __init__(self, in_dict):
             self.event = 'update'
@@ -20,7 +21,7 @@ class Api(object):
 
         def decode_request(self, in_dict):
             event = in_dict.get('event')
-            if event == 'update':
+            if event == 'new_tag':
                 request = Api.UpdateRequest(in_dict)
                 repo = self.api.repositories.get(request.repository)
                 if repo is None:
@@ -43,14 +44,11 @@ class Api(object):
             self.decode_request(cherrypy.request.json)
 
     def __init__(self):
-        self.repositories = {}
+        super(Api, self).__init__()
         self.strict_port_checking = False
         self.adapter = None  # type: _cpserver.ServerAdapter
         self.logger = Logger('api')
         self.cherrypy_server = _cpwsgi_server.CPWSGIServer()
-
-    def register_new_repo(self, repo):
-        self.repositories[repo.name] = repo
 
     def load_config(self, config):
         self.strict_port_checking = config.api.strict_port_checking

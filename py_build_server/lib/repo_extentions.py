@@ -1,4 +1,3 @@
-import time
 from git import Repo
 from multiprocessing import Queue
 
