@@ -1,12 +1,13 @@
 import json
 import sys
+import click
 
 from multiprocessing import Process
 
-import click
-
 from py_build_server.lib import ExtendedRepo
 from py_build_server.config import Config
+from py_build_server.lib.api import Api
+from py_build_server.lib.http_server_skeleton import HTTPServerSkeleton
 from py_build_server.lib.logger import Logger
 from py_build_server.lib.python_daemon import Daemon
 from py_build_server.lib import updater
@@ -20,6 +21,7 @@ class PyBuildServer(Daemon):
         self.config = Config()
         self.logger = Logger('py-build-server')
         self.updater = updater.get_updater(self.config)
+        self.api = Api()
 
     def run(self, *args, **kwargs):
         repository_processes = {}
@@ -27,6 +29,7 @@ class PyBuildServer(Daemon):
         for repo in ExtendedRepo.build_repos_from_config(self.config):
             self.logger.debug('creating process for {}...'.format(repo.name))
             self.updater.register_new_repo(repo)
+            self.api.register_new_repo(repo)
             p = Process(target=self.wait_for_event, args=(repo, ))
             self.logger.debug('starting process for {}...'.format(repo.name))
             p.start()
@@ -34,14 +37,19 @@ class PyBuildServer(Daemon):
             repository_processes[repo.name] = p
             self.logger.debug('started process for {}'.format(repo.name))
 
+        self.api.load_config(self.config)
         self.updater.load_config(self.config)
-        self.updater.start()
+        #self.api.start()
+        #self.updater.start()
+        HTTPServerSkeleton.start()
         try:
             for p in repository_processes.values():
                 self.logger.debug('waiting for threads to return (shouldnt happen')
                 p.join()
+            HTTPServerSkeleton.stop()
         except KeyboardInterrupt:
             self.logger.info('exiting')
+            HTTPServerSkeleton.stop()
             sys.exit(0)
 
     def wait_for_event(self, repo):

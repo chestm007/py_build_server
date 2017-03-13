@@ -8,15 +8,18 @@ class Twine(object):
     def upload(self, call):
         success = True
         try:
-            subprocess.check_output(
+            out = subprocess.check_output(
                 'cd {}; python2 setup.py sdist'.format(call.repo_dir), shell=True)
-            subprocess.check_output(str(call), shell=True)
+            self.repo.logger.debug(out)
+            out = subprocess.check_output(str(call), shell=True)
+            self.repo.logger.debug(out)
         except subprocess.CalledProcessError:
             success = False
             self.repo.logger.error('error uploading file to pipy')
         finally:
-            subprocess.check_output(
+            out = subprocess.check_output(
                 'rm -rf {}/dist'.format(call.repo_dir), shell=True)
+            self.repo.logger.debug(out)
         return success
 
 

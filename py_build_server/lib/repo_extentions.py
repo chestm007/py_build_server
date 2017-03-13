@@ -9,19 +9,44 @@ from py_build_server.lib.logger import Logger
 
 
 class ExtendedRepo(Repo):
+    """
+    self.logger should always point back to the internal logger wrapper class
+            - py_build_server.lib.logger.Logger()
+    self.queue is used for inter-process communication. messages should be sent as json
+            payloads. Required fields (and the currently supported params) are :
+                keys
+                -----
+                - event: this is used by logic in main.PyBuildServer.wait_for_event()
+                          to dispatch the event to the correct module
+                    values
+                    -------
+                    - new_tag: triggers a build and upload of the repository
+                        extra params supported:
+                        -----------------------
+                            - latest: tells the repo what tag has been detected as the
+                                       latest
+                    - stop: stops this repo's process from waiting for any more events
+                             and exit
+
+    """
     def __init__(self, config=None, name=None, *args, **kwargs):
         assert name is not None
         assert config is not None
-        self.latest_tag = None
+        self.latest_tag = None  # type: str
         super(ExtendedRepo, self).__init__(path=config.dir, *args, **kwargs)
-        self.name = name
-        self.config = config
-        self.logger = Logger(self.name)
-        self.queue = Queue()
+        self.name = name  # type: str
+        self.config = config  # type: config.Config
+        self.logger = Logger(self.name)  # type: .Logger
+        self.queue = Queue()  # type: Queue
         assert not self.bare
 
     @staticmethod
     def build_repos_from_config(config):
+        """
+        returns a list of ExtendedRepo objects built from the Config object passed in
+        :type config: Config()
+        :return:
+        """
         return [ExtendedRepo(name=name, config=repo_config) for name, repo_config in config.repos.items()]
 
     def get_status(self):
@@ -39,6 +64,8 @@ class ExtendedRepo(Repo):
         self.latest_tag = latest_tag
         try:
             if LatestTagFileParser.is_tag_in_file(self, self.latest_tag):
+                self.logger.debug('already at latest tag: {}'
+                                  .format(self.latest_tag))
                 return
             self.logger.info('pulling latest changes for {repo} from {remote}/{branch}'
                              .format(repo=self.name,

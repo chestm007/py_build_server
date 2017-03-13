@@ -2,22 +2,24 @@ import json
 import time
 import cherrypy
 
+from cherrypy import _cpwsgi_server, _cpserver
 from multiprocessing import Process
 
+from py_build_server.lib.http_server_skeleton import HTTPServerSkeleton
 from py_build_server.lib.logger import Logger
 
 
 def get_updater(config):
-    if 'polling' in config.update_method:
+    if config.update_method.method == 'polling':
         return PollingUpdater()
-    if 'webhook' in config.update_method:
+    if config.update_method.method == 'github_webhook':
         return GithubWebhookUpdater()
 
 
 class Updater(object):
     def __init__(self):
         self.repositories = {}
-        self.logger = Logger('polling-updater')
+        self.logger = Logger('updater')
 
     def register_new_repo(self, repo):
         self.repositories[repo.name] = repo
@@ -43,28 +45,38 @@ class GithubWebhookUpdater(Updater):
     class Root(object):
         def __init__(self, updater):
             self.updater = updater
-        @cherrypy.expose
+
+        @cherrypy.expose(alias='/github')
         @cherrypy.tools.json_in()
         def index(self):
-            request = GithubWebhookUpdater.WebhookResponse(cherrypy.request.json)
-            if request.is_tagged_push:
-                repo = self.updater.repositories.get(request.repository)
-                repo.latest_tag = request.tag
-                repo.queue.put(json.dumps(dict(event='new_tag', latest=request.tag)))
+            # openscan requests make the logs messy, this block drops anything
+            # that cant be decoded to JSON
+            try:
+                request = GithubWebhookUpdater.WebhookResponse(cherrypy.request.json)
+                if request.is_tagged_push:
+                    repo = self.updater.repositories.get(request.repository)
+                    repo.latest_tag = request.tag
+                    repo.queue.put(json.dumps(dict(event='new_tag', latest=request.tag)))
+            except AttributeError:
+                pass
+            return 'woot'
 
     def __init__(self):
         super(GithubWebhookUpdater, self).__init__()
-        self.subdomain = None
+        self.cherrypy_server = _cpwsgi_server.CPWSGIServer()
+        self.adapter = None  # type: _cpserver.ServerAdapter
 
     def start(self):
-        cherrypy.quickstart(self.Root(self), self.subdomain)
+        HTTPServerSkeleton.start()
 
     def load_config(self, config):
-        cherrypy.config.update({'log.screen': False,
-                                'log.access_file': '',
-                                'log.error_file': ''})
-        cherrypy.server.socket_host = config.update_method.get('listen_address', '0.0.0.0')
-        self.subdomain = config.update_method.get('subdomain', '/')
+        self.cherrypy_server.bind_addr = (config.update_method.listen_address,
+                                          config.update_method.port)
+        cherrypy.tree.mount(self.Root(self), config.update_method.subdomain)
+        self.adapter = _cpserver.ServerAdapter(cherrypy.engine,
+                                               self.cherrypy_server,
+                                               self.cherrypy_server.bind_addr)
+        self.adapter.subscribe()
 
 
 class PollingUpdater(Updater):
