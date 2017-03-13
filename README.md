@@ -1,4 +1,4 @@
-An automated build server written for Python2.7 (python3 support coming soon)
+An automated build server written for Python, works with python2 and python3
 
 ####About
 monitors git repository either by polling or listening for webhook messages, and when new tagged versions are released, builds and uploads to your chosen repository via twine
@@ -41,7 +41,6 @@ you will need to modify `config.yaml` file in `/etc/py-build-server/` to match y
 #
 # logging:                              # (O)
 #     level: debug                      # (O) DEBUG|WARN|INFO|ERROR|OFF (case doesnt matter)
-#     implement_journald: false         # (O) send logs to journald instead
 #
 ### this section sets repository specific settings
 #

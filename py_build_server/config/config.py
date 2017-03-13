@@ -52,7 +52,6 @@ class Logging(object):
         except:
             level_map = logging._levelNames
         self.level = level_map.get(conf.get('level', 'info').upper())
-        self.implement_journald = conf.get('implement_journald', False)
 
 
 class Repo(object):
