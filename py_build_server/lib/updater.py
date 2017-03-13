@@ -100,7 +100,7 @@ class BitbucketWebhookUpdater(WebhookUpdater):
             return
 
     def load_config(self, config):
-        conf = config.update_method.get(self.update_method)
+        conf = config.update_method.methods.get(self.update_method)
         super(BitbucketWebhookUpdater, self).load_config(conf)
 
 
