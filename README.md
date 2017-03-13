@@ -1,7 +1,13 @@
 An automated build server written for Python, works with python2 and python3
 
 ####About
-monitors git repository either by polling or listening for webhook messages, and when new tagged versions are released, builds and uploads to your chosen repository via twine
+monitors git repository either by polling or listening for webhook messages, and when new tagged versions are released, 
+builds and uploads to your chosen repository via twine.
+
+- Features
+  - Bitbucket and Github webhook support
+  - has a super cool API (not really, only 3 payloads are supported)
+  - can run tests before building and uploading (nosetest only at the moment.)
 
 ####Installation
 `sudo pip2 install py-build-server`
@@ -51,6 +57,9 @@ you will need to modify `config.yaml` file in `/etc/py-build-server/` to match y
 #         interval: 10                  # (O) minutes between repo checks (only needed if polling)
 #         remote: origin                # (O) remote name to fetch (default: origin)
 #         branch: branch_to_release     # (O) if set, dont upload unless on this branch
+#         tests:                        # (O) if set, run all tests listed here
+#             - framework: nosetest     #     framework to use, currently supports nosetest only
+#               dir: /path/to/test/dir  #     path to run the tests from (as though your on cli)
 #         twine_conf:                   # this whole section of options are optional, but you will need
 #                                       # to supply user/pass or pypirc file
 #             username: user            # (O) username to authenticate to repository as

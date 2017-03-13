@@ -45,6 +45,7 @@ class UpdateMethod(object):
         if 'polling' in conf:
             self.methods['polling'] = 'polling'
 
+
 class Logging(object):
     def __init__(self, conf):
         try:
@@ -55,6 +56,11 @@ class Logging(object):
 
 
 class Repo(object):
+    class Tests(object):
+        def __init__(self, conf):
+            self.framework = conf.get('framework')
+            self.dir = conf.get('dir')
+
     def __init__(self, name, conf):
         self.name = name
         self.dir = conf.get('dir')
@@ -63,6 +69,7 @@ class Repo(object):
         self.branch = conf.get('branch')
         self.remote = conf.get('remote', 'origin')
         self.twine_conf = conf.get('twine_conf')
+        self.tests = [self.Tests(t) for t in conf.get('tests', {})]
 
 
 class Api(object):
