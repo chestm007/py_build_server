@@ -2,8 +2,8 @@ from git import Repo
 from multiprocessing import Queue
 
 from py_build_server.lib.file_operations import LatestTagFileParser
-from py_build_server.lib.test_runners import NosetestRunner
-from py_build_server.lib.twine_extentions import UploadCall, Twine
+from py_build_server.lib.test_runners import TestRunner
+from py_build_server.lib.twine_extentions import PackageBuilder
 
 from py_build_server.lib.logger import Logger
 
@@ -39,9 +39,9 @@ class ExtendedRepo(Repo):
         self.config = config  # type: config.Repo
         self.logger = Logger(self.name)  # type: .Logger
         self.queue = Queue()  # type: Queue
+        self.package_builder = PackageBuilder(self, self.config.release_conf)
         for test in self.config.tests:
-            if test.framework == 'nosetest':
-                self.test_runners.append(NosetestRunner(self, test))
+            self.test_runners.append(TestRunner(self, test))
         assert not self.bare
 
     @staticmethod
@@ -86,7 +86,7 @@ class ExtendedRepo(Repo):
                     self.logger.info('tests did not pass, skipping upload')
                     self.latest_tag = old_tag
                     return
-            if Twine(self).upload(UploadCall(self.working_dir, self.config.twine_conf)):
+            if self.package_builder.build_and_upload():
                 self.logger.info('uploaded {}:{} to pypi'.format(self.name, self.latest_tag))
                 LatestTagFileParser.set_tag_in_file(self, self.latest_tag)
             else:

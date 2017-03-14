@@ -1,4 +1,3 @@
-import sys
 import yaml
 import logging
 
@@ -58,8 +57,15 @@ class Logging(object):
 class Repo(object):
     class Tests(object):
         def __init__(self, conf):
-            self.framework = conf.get('framework')
-            self.dir = conf.get('dir')
+            self.command = conf.get('command')
+            self.failure_regex = conf.get('failure_regex')
+            self.success_regex = conf.get('success_regex')
+
+    class ReleaseConf(object):
+        def __init__(self, conf):
+            self.build_command = conf.get('build_command')
+            self.upload_command = conf.get('upload_command')
+            self.cleanup_command = conf.get('cleanup_command')
 
     def __init__(self, name, conf):
         self.name = name
@@ -68,7 +74,7 @@ class Repo(object):
         self.update_method = conf.get('update_method')
         self.branch = conf.get('branch')
         self.remote = conf.get('remote', 'origin')
-        self.twine_conf = conf.get('twine_conf')
+        self.release_conf = self.ReleaseConf(conf.get('release_conf'))
         self.tests = [self.Tests(t) for t in conf.get('tests', {})]
 
 
