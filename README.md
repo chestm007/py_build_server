@@ -1,3 +1,4 @@
+[![Code Climate](https://codeclimate.com/github/chestm007/py_build_server/badges/gpa.svg)](https://codeclimate.com/github/chestm007/py_build_server)
 An automated build server written for Python (but should work with most other languages), runs under python2 or python3
 
 #### About
