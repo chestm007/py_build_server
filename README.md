@@ -1,4 +1,7 @@
 [![Code Climate](https://codeclimate.com/github/chestm007/py_build_server/badges/gpa.svg)](https://codeclimate.com/github/chestm007/py_build_server)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/dwyl/esta/issues)
+
+
 An automated build server written for Python (but should work with most other languages), runs under python2 or python3
 
 #### About
