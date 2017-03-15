@@ -52,6 +52,7 @@ class WebhookUpdater(Updater):
             self.tag = self.ref.split('/')[-1]
             self.is_tagged_push = 'tags' in self.ref
             self.repository = in_dict.get('repository').get('name')
+            self.tagged_commit = in_dict.get('after')
 
     class Root(object):
         def __init__(self, updater):
@@ -84,7 +85,7 @@ class BitbucketWebhookUpdater(WebhookUpdater):
     class BitbucketWebhookRequest(WebhookUpdater.WebhookRequest):
         def __init__(self, in_dict):
             ref_changes = in_dict.get('push', {}).get('changes', [])[0]
-            self.ref = '{}s/{}'.format(ref_changes.get('new', {}).get('type'), ref_changes.get('new', {}).get('name'))
+            self.ref = 'refs/{}s/{}'.format(ref_changes.get('new', {}).get('type'), ref_changes.get('new', {}).get('name'))
             self.created = ref_changes.get('created')
             super(BitbucketWebhookUpdater.BitbucketWebhookRequest, self).__init__(in_dict)
 

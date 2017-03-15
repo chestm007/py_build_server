@@ -1,5 +1,6 @@
 import json
 import sys
+
 import click
 
 from multiprocessing import Process
@@ -55,6 +56,7 @@ class PyBuildServer(Daemon):
     def wait_for_event(self, repo):
         while True:
             try:
+                self.logger.debug('waiting for message from queue')
                 payload = json.loads(repo.queue.get())
                 action = payload.get('event')
 

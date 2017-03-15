@@ -72,7 +72,6 @@ class Repo(object):
         self.dir = conf.get('dir')
         self.fetch_frequency = conf.get('interval', 10)
         self.update_method = conf.get('update_method')
-        self.branch = conf.get('branch')
         self.remote = conf.get('remote', 'origin')
         self.release_conf = self.ReleaseConf(conf.get('release_conf'))
         self.tests = [self.Tests(t) for t in conf.get('tests', {})]

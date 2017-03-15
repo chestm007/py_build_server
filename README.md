@@ -56,7 +56,6 @@ You will need to modify `config.yaml` file in `/etc/py-build-server/` to match y
 #         update_method: github_webhook # (O) bitbucket_webhook|github_webhook|polling (default: polling)
 #         interval: 10                  # (O) minutes between repo checks (only needed if polling)
 #         remote: origin                # (O) remote name to fetch (default: origin)
-#         branch: master                # (O) if set, dont upload unless on this branch
 #         tests:                        # (O) if set, run all tests listed here
 #             - command: cd {repository_dir}; nosetests -v 
 #               failure_regex: FAILED  

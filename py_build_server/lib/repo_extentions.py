@@ -33,11 +33,11 @@ class ExtendedRepo(Repo):
         assert name is not None
         assert config is not None
         self.latest_tag = None  # type: str
-        self.test_runners = []
+        self.test_runners = []  # type: list[TestRunner]
         super(ExtendedRepo, self).__init__(path=config.dir, *args, **kwargs)
         self.name = name  # type: str
         self.config = config  # type: config.Repo
-        self.logger = Logger(self.name)  # type: .Logger
+        self.logger = Logger(self.name)  # type: Logger
         self.queue = Queue()  # type: Queue
         self.package_builder = PackageBuilder(self, self.config.release_conf)
         for test in self.config.tests:
@@ -49,7 +49,7 @@ class ExtendedRepo(Repo):
         """
         returns a list of ExtendedRepo objects built from the Config object passed in
         :type config: Config()
-        :return:
+        :return: list[ExtendedRepo]
         """
         return [ExtendedRepo(name=name, config=repo_config) for name, repo_config in config.repos.items()]
 
@@ -80,7 +80,15 @@ class ExtendedRepo(Repo):
                                      remote=self.get_remote().name,
                                      branch=self.active_branch.name))
 
-            self.get_remote().pull()
+            self.logger.debug('fetching from origin')
+            self.git.fetch()
+            self.logger.debug('checking out {}'.format(latest_tag))
+            self.git.checkout([latest_tag])
+            if self.is_dirty():
+                self.logger.info('working tree is not clean, exiting. '
+                                 'skipped tests and upload.')
+                self.latest_tag = old_tag
+                return
             for test in self.test_runners:
                 if not test.run():
                     self.logger.info('tests did not pass, skipping upload')
