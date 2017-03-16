@@ -75,7 +75,6 @@ class Repo(object):
             self.password = conf.get('password')
             self.target_url = conf.get('target_url')
             self.context = conf.get('context')
-            self.email = conf.get('email')
             self.name = conf.get('name')
             self.key = conf.get('key')
 

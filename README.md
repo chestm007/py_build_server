@@ -12,6 +12,7 @@ builds and uploads to your chosen repository.
   - Bitbucket and Github webhook support
   - Has a super cool API (not really, only 3 payloads are supported)
   - Can run tests before building and uploading 
+  - Updates build status of tagged commits
 
 #### Installation
 `sudo pip2 install py-build-server`
@@ -64,11 +65,10 @@ You will need to modify `config.yaml` file in `/etc/py-build-server/` to match y
 #             username:
 #             password:
 #             target_url:                 # url to view build status
-#             context:                    # (O) identifier for this CI server
+#             context:                    # (O) identifier for this CI server (github only)
 #             # BITBUCKET SPECIFIC SETTINGS.
 #             key: <something atlassian>  
 #             name: <...moar atlassian>   
-#             email: <your email...>      
 #         interval: 10                  # (O) minutes between repo checks (only needed if polling)
 #         remote: origin                # (O) remote name to fetch (default: origin)
 #         tests:                        # (O) if set, run all tests listed here

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='py-build-server',
-    version='0.9.1',
+    version='0.9.2',
     packages=find_packages(),
     license='GPL3',
     author='chestm007',
