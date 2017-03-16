@@ -1,11 +1,8 @@
-import sys
 from setuptools import setup, find_packages
 
-if sys.version > (3, ):
-    sys.exit('Sorry, Python3 is not supported at this stage.')
 setup(
     name='py-build-server',
-    version='0.8.1',
+    version='0.9.0',
     packages=find_packages(),
     license='GPL3',
     author='chestm007',
@@ -19,6 +16,8 @@ setup(
     requires=[
         'click',
         'gitpython',
-        'pyyaml'
+        'pyyaml',
+        'github3.py',
+        'pybitbucket'
     ]
 )

@@ -2,12 +2,12 @@ An automated build server written for Python (but should work with most other la
 
 #### About
 Monitors git repository either by polling or listening for webhook messages, and when new tagged versions are released, 
-builds and uploads to your chosen repository via twine.
+builds and uploads to your chosen repository.
 
 - Features
   - Bitbucket and Github webhook support
   - Has a super cool API (not really, only 3 payloads are supported)
-  - Can run tests before building and uploading (nosetest only at the moment.)
+  - Can run tests before building and uploading 
 
 #### Installation
 `sudo pip2 install py-build-server`
@@ -54,11 +54,23 @@ You will need to modify `config.yaml` file in `/etc/py-build-server/` to match y
 #     py_build_server:                  # repository name, as seen by remote
 #         dir: /home/max/git/py_build_server
 #         update_method: github_webhook # (O) bitbucket_webhook|github_webhook|polling (default: polling)
+#         repository_api:
+#             type: github
+#             owner:
+#             username:
+#             password:
+#             target_url:                 # url to view build status
+#             context:                    # (O) identifier for this CI server
+#             # BITBUCKET SPECIFIC SETTINGS.
+#             key: <something atlassian>  
+#             name: <...moar atlassian>   
+#             email: <your email...>      
 #         interval: 10                  # (O) minutes between repo checks (only needed if polling)
 #         remote: origin                # (O) remote name to fetch (default: origin)
 #         tests:                        # (O) if set, run all tests listed here
 #             - command: cd {repository_dir}; nosetests -v 
 #               failure_regex: FAILED  
+#               success_regex: ok
 #         release_conf:                 # details how to build and release your repository
 #             build_command: cd {repository_dir}; python setup.py sdist
 #             upload_command: twine upload {repository_dir}/dist/* -u <username> -p <password

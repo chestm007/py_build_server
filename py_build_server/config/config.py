@@ -67,6 +67,17 @@ class Repo(object):
             self.upload_command = conf.get('upload_command')
             self.cleanup_command = conf.get('cleanup_command')
 
+    class RepositoryApi(object):
+        def __init__(self, conf):
+            self.type = conf.get('type')
+            self.owner = conf.get('owner')
+            self.username = conf.get('username')
+            self.password = conf.get('password')
+            self.target_url = conf.get('target_url')
+            self.context = conf.get('context')
+            self.email = conf.get('email')
+            self.name = conf.get('name')
+
     def __init__(self, name, conf):
         self.name = name
         self.dir = conf.get('dir')
@@ -75,6 +86,7 @@ class Repo(object):
         self.remote = conf.get('remote', 'origin')
         self.release_conf = self.ReleaseConf(conf.get('release_conf'))
         self.tests = [self.Tests(t) for t in conf.get('tests', {})]
+        self.repository_api = self.RepositoryApi(conf.get('repository_api'))
 
 
 class Api(object):

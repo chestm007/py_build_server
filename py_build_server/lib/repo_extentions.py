@@ -1,9 +1,10 @@
 from git import Repo
 from multiprocessing import Queue
 
+from py_build_server.lib import repository_api_clients
 from py_build_server.lib.file_operations import LatestTagFileParser
 from py_build_server.lib.test_runners import TestRunner
-from py_build_server.lib.twine_extentions import PackageBuilder
+from py_build_server.lib.packaging import PackageBuilder
 
 from py_build_server.lib.logger import Logger
 
@@ -40,6 +41,7 @@ class ExtendedRepo(Repo):
         self.logger = Logger(self.name)  # type: Logger
         self.queue = Queue()  # type: Queue
         self.package_builder = PackageBuilder(self, self.config.release_conf)
+        self.repository_api = repository_api_clients.get_client(self)
         for test in self.config.tests:
             self.test_runners.append(TestRunner(self, test))
         assert not self.bare
@@ -90,17 +92,21 @@ class ExtendedRepo(Repo):
                 self.latest_tag = old_tag
                 return
             for test in self.test_runners:
+                self.repository_api.update_build_status(self.repository_api.pending, self.head)
                 if not test.run():
                     self.logger.info('tests did not pass, skipping upload')
                     self.latest_tag = old_tag
+                    self.repository_api.update_build_status(self.repository_api.failure, self.head)
                     return
             if self.package_builder.build_and_upload():
                 self.logger.info('uploaded {}:{} to pypi'.format(self.name, self.latest_tag))
                 LatestTagFileParser.set_tag_in_file(self, self.latest_tag)
+                self.repository_api.update_build_status(self.repository_api.success, self.head)
             else:
                 self.logger.info('failed uploading {}:{} to pypi, rolling back latest tag'
                                  .format(self.name, self.latest_tag))
                 self.latest_tag = old_tag
+                self.repository_api.update_build_status(self.repository_api.failure, self.head)
 
         except KeyboardInterrupt:
             self.logger.debug('exiting process for {}'.format(self.name))
