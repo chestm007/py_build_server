@@ -77,6 +77,7 @@ class Repo(object):
             self.context = conf.get('context')
             self.email = conf.get('email')
             self.name = conf.get('name')
+            self.key = conf.get('key')
 
     def __init__(self, name, conf):
         self.name = name
@@ -86,7 +87,8 @@ class Repo(object):
         self.remote = conf.get('remote', 'origin')
         self.release_conf = self.ReleaseConf(conf.get('release_conf'))
         self.tests = [self.Tests(t) for t in conf.get('tests', {})]
-        self.repository_api = self.RepositoryApi(conf.get('repository_api'))
+        if 'repository_api' in conf:
+            self.repository_api = self.RepositoryApi(conf.get('repository_api'))
 
 
 class Api(object):

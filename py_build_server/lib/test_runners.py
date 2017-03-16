@@ -3,6 +3,8 @@ import subprocess
 
 import sys
 
+import requests
+
 
 class TestRunner(object):
     def __init__(self, repo, config):
@@ -26,3 +28,5 @@ class TestRunner(object):
         self.repo.logger.info('unsure how to tell if test passed or failed, assuming it failed. Please check '
                               'your success_regex and failure_regex strings under tests in this repository')
         return False
+
+requests.session().auth

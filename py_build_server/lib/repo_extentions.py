@@ -41,9 +41,14 @@ class ExtendedRepo(Repo):
         self.logger = Logger(self.name)  # type: Logger
         self.queue = Queue()  # type: Queue
         self.package_builder = PackageBuilder(self, self.config.release_conf)
-        self.repository_api = repository_api_clients.get_client(self)
+        try:
+            self.repository_api = repository_api_clients.get_client(self)
+        except AttributeError:
+            pass
+
         for test in self.config.tests:
             self.test_runners.append(TestRunner(self, test))
+
         assert not self.bare
 
     @staticmethod
@@ -62,6 +67,13 @@ class ExtendedRepo(Repo):
     def get_status(self):
         self.get_remote().fetch()
         return self.status()
+
+    def update_build_status(self, state):
+        try:
+            self.repository_api.update_build_status(
+                state, self.head.commit)
+        except AttributeError:
+            pass
 
     def get_remote(self):
         return self.remote(self.config.remote)
@@ -92,21 +104,21 @@ class ExtendedRepo(Repo):
                 self.latest_tag = old_tag
                 return
             for test in self.test_runners:
-                self.repository_api.update_build_status(self.repository_api.pending, self.head)
+                self.update_build_status(self.repository_api.pending)
                 if not test.run():
                     self.logger.info('tests did not pass, skipping upload')
                     self.latest_tag = old_tag
-                    self.repository_api.update_build_status(self.repository_api.failure, self.head)
+                    self.update_build_status(self.repository_api.failure)
                     return
             if self.package_builder.build_and_upload():
                 self.logger.info('uploaded {}:{} to pypi'.format(self.name, self.latest_tag))
                 LatestTagFileParser.set_tag_in_file(self, self.latest_tag)
-                self.repository_api.update_build_status(self.repository_api.success, self.head)
+                self.update_build_status(self.repository_api.success)
             else:
                 self.logger.info('failed uploading {}:{} to pypi, rolling back latest tag'
                                  .format(self.name, self.latest_tag))
                 self.latest_tag = old_tag
-                self.repository_api.update_build_status(self.repository_api.failure, self.head)
+                self.update_build_status(self.repository_api.failure)
 
         except KeyboardInterrupt:
             self.logger.debug('exiting process for {}'.format(self.name))
