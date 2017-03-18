@@ -51,7 +51,7 @@ class Api(RepositoryListener):
                 repo = self.api.repositories.get(request.repository)
                 return dict(repository=repo.to_dict())
 
-        @cherrypy.expose(alias='/api')
+        @cherrypy.expose()
         @cherrypy.tools.json_in()
         @cherrypy.tools.json_out()
         def index(self):

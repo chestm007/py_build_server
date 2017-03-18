@@ -3,8 +3,6 @@ import subprocess
 
 import sys
 
-import requests
-
 
 class TestRunner(object):
     def __init__(self, repo, config):
@@ -12,6 +10,7 @@ class TestRunner(object):
         self.command = config.command.format(repository_dir=self.repo.working_dir)
         self.failure_regex = config.failure_regex
         self.success_regex = config.success_regex
+        self.name = config.name
 
     def run(self):
         self.repo.logger.debug('executing test command: {}'
@@ -20,13 +19,10 @@ class TestRunner(object):
         self.repo.logger.debug(result)
         if self.failure_regex:
             if re.match(self.failure_regex, result):
-                return False
+                return False, result
         # TODO: hook into test pass API
         if self.success_regex:
             if re.match(self.success_regex, result):
-                return True
+                return True, result
         self.repo.logger.info('unsure how to tell if test passed or failed, assuming it failed. Please check '
                               'your success_regex and failure_regex strings under tests in this repository')
-        return False
-
-requests.session().auth

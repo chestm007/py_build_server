@@ -13,6 +13,8 @@ from py_build_server.lib.logger import Logger
 from py_build_server.lib.python_daemon import Daemon
 from py_build_server.lib import updater
 from py_build_server.lib.repository_hooks import RepositoryListeners
+from py_build_server.lib.web_server.builds.root import WebsiteBuilds
+from py_build_server.lib.web_server.decorators import while_true
 
 HELP_DECLS=('help', '--help', '-h', 'h')
 
@@ -22,11 +24,17 @@ class PyBuildServer(Daemon):
         super(PyBuildServer, self).__init__(*args, **kwargs)
         self.config = Config()
         self.logger = Logger('py-build-server')
+
         self.repo_listeners = RepositoryListeners()
+
         self.updaters = updater.get_updaters(self.config)
         self.repo_listeners.add_listeners(self.updaters)
+
         self.api = Api()
         self.repo_listeners.add_listener(self.api)
+
+        self.build_report_server = WebsiteBuilds()
+        self.repo_listeners.add_listener(self.build_report_server)
 
     def run(self, *args, **kwargs):
         repository_processes = {}
@@ -64,8 +72,6 @@ class PyBuildServer(Daemon):
                 self.logger.debug('exited while waiting for event from queue')
                 return
             self.logger.debug('recieved {} from queue'.format(action))
-            if action == 'stop':
-                break
             if action == 'new_tag':
                 try:
                     repo.upload(payload.get('latest'))

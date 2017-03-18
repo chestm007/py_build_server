@@ -2,7 +2,7 @@ from git import Repo
 from multiprocessing import Queue
 
 from py_build_server.lib import repository_api_clients
-from py_build_server.lib.file_operations import LatestTagFileParser
+from py_build_server.lib.file_operations import LatestTagFileParser, BuildLogManager
 from py_build_server.lib.test_runners import TestRunner
 from py_build_server.lib.packaging import PackageBuilder
 
@@ -10,6 +10,7 @@ from py_build_server.lib.logger import Logger
 
 
 class ExtendedRepo(Repo):
+    # TODO: THIS DOCSTRING IS OUTDATED. self.queue no longer honours this api
     """
     self.logger should always point back to the internal logger wrapper class
             - py_build_server.lib.logger.Logger()
@@ -30,7 +31,7 @@ class ExtendedRepo(Repo):
                              and exit
 
     """
-    def __init__(self, config=None, name=None, *args, **kwargs):
+    def __init__(self, config=None, name=None, full_config=None, *args, **kwargs):
         assert name is not None
         assert config is not None
         self.latest_tag = None  # type: str
@@ -41,6 +42,7 @@ class ExtendedRepo(Repo):
         self.logger = Logger(self.name)  # type: Logger
         self.queue = Queue()  # type: Queue
         self.package_builder = PackageBuilder(self, self.config.release_conf)
+        self.build_log_manager = BuildLogManager(self, full_config.build_log_storage)
         try:
             self.repository_api = repository_api_clients.get_client(self)
         except AttributeError:
@@ -58,7 +60,8 @@ class ExtendedRepo(Repo):
         :type config: Config()
         :return: list[ExtendedRepo]
         """
-        return [ExtendedRepo(name=name, config=repo_config) for name, repo_config in config.repos.items()]
+        return [ExtendedRepo(name=name, config=repo_config, full_config=config)
+                for name, repo_config in config.repos.items()]
 
     def to_dict(self):
         return dict(config=self.config.__dict__, name=self.name, active_branch=str(self.active_branch),
@@ -89,10 +92,9 @@ class ExtendedRepo(Repo):
                 self.logger.debug('already at latest tag: {}'
                                   .format(self.latest_tag))
                 return
-            self.logger.info('pulling latest changes for {repo} from {remote}/{branch}'
+            self.logger.info('pulling latest changes for {repo} from {remote}'
                              .format(repo=self.name,
-                                     remote=self.get_remote().name,
-                                     branch=self.active_branch.name))
+                                     remote=self.get_remote().name))
 
             self.logger.debug('fetching from origin')
             self.git.fetch()
@@ -105,12 +107,16 @@ class ExtendedRepo(Repo):
                 return
             for test in self.test_runners:
                 self.update_build_status(self.repository_api.pending)
-                if not test.run():
+                status, result = test.run()
+                self.build_log_manager.save_build(latest_tag, result, test.name)
+                if not status:
                     self.logger.info('tests did not pass, skipping upload')
                     self.latest_tag = old_tag
                     self.update_build_status(self.repository_api.failure)
                     return
-            if self.package_builder.build_and_upload():
+            status, result = self.package_builder.build_and_upload()
+            self.build_log_manager.save_build(latest_tag, result)
+            if status:
                 self.logger.info('uploaded {}:{} to pypi'.format(self.name, self.latest_tag))
                 LatestTagFileParser.set_tag_in_file(self, self.latest_tag)
                 self.update_build_status(self.repository_api.success)

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='py-build-server',
-    version='0.9.2',
+    version='0.10.0',
     packages=find_packages(),
     license='GPL3',
     author='chestm007',
@@ -17,6 +17,7 @@ setup(
         'click',
         'gitpython',
         'pyyaml',
-        'requests'
+        'requests',
+        'cherrypy'
     ]
 )

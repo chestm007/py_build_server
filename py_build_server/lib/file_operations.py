@@ -1,3 +1,6 @@
+import os
+
+
 class LatestTagFileParser(object):
     @staticmethod
     def is_tag_in_file(repo, tag):
@@ -21,3 +24,31 @@ class LatestTagFileParser(object):
                 file.write('{}:{}\n'.format(repo.name, tag))
         except IOError:
             repo.logger.error('error writing to file for repo {}'.format(repo.name))
+
+
+class BuildLogManager(object):
+    def __init__(self, repo, config):
+        super(BuildLogManager, self).__init__()
+        self.dir = config.dir
+        self.repo = repo
+        repo_dirs = os.listdir(self.dir)
+        if self.repo.name not in repo_dirs:
+            os.mkdir('%s/%s' % (self.dir, self.repo.name), mode=0o655)
+
+    def list_builds(self):
+        return os.listdir('%s/%s' % (self.dir, self.repo.name))
+
+    def load_build(self, commit):
+        try:
+            with open('%s/%s/%s' % (self.dir, self.repo.name, commit), 'r') as build:
+                return build.read()
+        except IOError:
+            self.repo.logger.info('no build found for %s/%s' % (self.repo.name, commit))
+            return False
+
+    def save_build(self, commit, build_output, identifier=''):
+        self.repo.logger.debug('writing build log file for %s/%s' % (self.repo.name, commit))
+        with open('%s/%s/%s' % (self.dir, self.repo.name, commit), 'w') as build:
+            build.write(build_output)
+            self.repo.logger.debug('successfully wrote build log for %s/%s-%s'
+                              % (self.repo.name, commit, identifier))

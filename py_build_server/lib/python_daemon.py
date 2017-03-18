@@ -57,15 +57,17 @@ class Daemon(object):
         Programming in the UNIX Environment" for details (ISBN 0201563177)
         http://www.erlenstar.demon.co.uk/unix/faq_2.html#SEC16
         """
-        try:
-            pid = os.fork()
-            if pid > 0:
-                # Exit first parent
-                sys.exit(0)
-        except OSError as e:
-            sys.stderr.write(
-                "fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
-            sys.exit(1)
+        def fork(times_forked):
+            try:
+                pid = os.fork()
+                if pid > 0:
+                    # Exit first parent
+                    sys.exit(0)
+            except OSError as e:
+                sys.stderr.write(
+                    "fork #% failed: %d (%s)\n" % (times_forked, e.errno, e.strerror))
+                sys.exit(1)
+        fork(1)
 
         # Decouple from parent environment
         os.chdir(self.home_dir)
@@ -73,15 +75,7 @@ class Daemon(object):
         os.umask(self.umask)
 
         # Do second fork
-        try:
-            pid = os.fork()
-            if pid > 0:
-                # Exit from second parent
-                sys.exit(0)
-        except OSError as e:
-            sys.stderr.write(
-                "fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
-            sys.exit(1)
+        fork(2)
 
         if sys.platform != 'darwin':  # This block breaks on OS X
             # Redirect standard file descriptors
@@ -138,16 +132,7 @@ class Daemon(object):
         self.log("Starting...")
 
         # Check for a pidfile to see if the daemon already runs
-        try:
-            pf = open(self.pidfile, 'r')
-            pid = int(pf.read().strip())
-            pf.close()
-        except IOError:
-            pid = None
-        except SystemExit:
-            pid = None
-
-        if pid:
+        if self.get_pid():
             message = "pidfile %s already exists. Is it already running?\n"
             sys.stderr.write(message % self.pidfile)
             sys.exit(1)

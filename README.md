@@ -13,6 +13,7 @@ builds and uploads to your chosen repository.
   - Has a super cool API (not really, only 3 payloads are supported)
   - Can run tests before building and uploading 
   - Updates build status of tagged commits
+  - keeps a record of builds
 
 #### Installation
 `sudo pip2 install py-build-server`
@@ -24,6 +25,11 @@ You will need to modify `config.yaml` file in `/etc/py-build-server/` to match y
 #
 # Demo entry using all possible config options: O denotes optionals
 ####
+#
+### this section defines where to store build output logs
+#
+# build_log_storage:
+#     dir: /var/lib/py-build-server/builds
 #
 ### this section defines how to start the API server
 ### api and repository_update_method cannot bind to the same address, port and subdomain
@@ -73,6 +79,7 @@ You will need to modify `config.yaml` file in `/etc/py-build-server/` to match y
 #         remote: origin                # (O) remote name to fetch (default: origin)
 #         tests:                        # (O) if set, run all tests listed here
 #             - command: cd {repository_dir}; nosetests -v 
+#               name: nosetests         # name to associate the test log with
 #               failure_regex: FAILED  
 #               success_regex: ok
 #         release_conf:                 # details how to build and release your repository
